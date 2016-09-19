@@ -1,0 +1,222 @@
+﻿@model monthlybnb.Models.City
+
+
+
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+
+
+
+
+<h2>@Model.Name Details</h2>
+
+@{ double[] quintileAverages = Model.quintileAveragePrices();}
+<div class="panel panel-default">
+    <div class="panel-heading">Listing Stats</div>
+    <div class="panel-body">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-4">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <td>Average Listing Price</td>
+                                <td>@Model.MonthlyAveragePrice</td>
+                            </tr>
+                            <tr>
+                                <td>Number of Listings</td>
+                                <td>@Model.Listings.Count</td>                        
+                            </tr>
+                            <tr>
+                                <td>Quintile 1 Average Price</td>
+                                <td>@quintileAverages[0]</td>
+                            </tr>
+                            <tr>
+                                <td>Quintile 2 Average Price</td>
+                                <td>@quintileAverages[1]</td>
+                            </tr>
+                            <tr>
+                                <td>Quintile 3 Average Price</td>
+                                <td>@quintileAverages[2]</td>
+                            </tr>
+                            <tr>
+                                <td>Quintile 4 Average Price</td>
+                                <td>@quintileAverages[3]</td>
+                            </tr>
+                            <tr>
+                                <td>Quintile 5 Average Price</td>
+                                <td>@quintileAverages[4]</td>
+                            </tr>
+                            <tr>
+                                <td>Last Updated</td>
+                                <td>@Model.LastUpdated</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-4">
+                    <div id="listingChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">Listing Concentration Map</div>
+    <div class="panel-body">
+        <div style="height: 450px;" id="priceMap"></div>
+    </div>
+</div>
+
+
+<div class="panel panel-default">
+    <div class="panel-heading">All Listings</div>
+    <div class="panel-body">
+        <div class="container-fluid">
+            <table id="listingsTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <td>AirBnB Id</td>
+                        <td>Bedrooms</td>
+                        <td>Monthly Discount</td>
+                        <td>Monthly Price</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (monthlybnb.Models.Listing listing in Model.Listings.OrderBy(o => o.MonthlyPrice))
+                    {
+                        <text>
+                        <tr>
+                            @{ double discount = 1 - @listing.MonthlyMultiplier;}
+                            <td>@listing.AirbnbId</td>
+                            <td>@listing.Bedrooms</td>
+                            <td>@discount</td>
+                            <td>@listing.MonthlyPrice</td>
+                            <td><a href="https://www.airbnb.com/rooms/@{@listing.AirbnbId}/" target="_blank">Listing Page</a></td>
+                        </tr>
+                        </text>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("https://www.google.com/jsapi?ext.js")
+
+
+<script>
+
+    var priceMap;
+
+    function initMap() {
+
+        priceMap = new google.maps.Map(document.getElementById('priceMap'), {
+            zoom: 13,
+            center: { lat: @Model.Lat, lng: @Model.Long },
+
+        });
+
+        var green = "http://maps.google.com/mapfiles/kml/paddle/grn-diamond-lv.png";
+        var yellow = "http://maps.google.com/mapfiles/kml/paddle/ylw-diamond-lv.png";
+        var red = "http://maps.google.com/mapfiles/kml/paddle/red-diamond-lv.png";
+
+        @{
+                int totalListings = Model.Listings.Count;
+                int count = 0;
+             }
+        @foreach (monthlybnb.Models.Listing listing in Model.Listings.OrderBy(o=>o.MonthlyPrice))
+            {
+                count++;
+                string icon = "";
+
+                //Set first 2 quintiles to green icon
+                //Set third quintile to yellow icon
+                //Set last 2 quintiles to red icon
+                if (count < (.4 * totalListings))
+                {
+                    icon = "green";
+                }
+                else if (count < (.6 * totalListings))
+                {
+                    icon = "yellow";
+                }
+                else
+                {
+                    icon = "red";
+                }
+
+                 <text>var marker = new google.maps.Marker({ position: {lat: @listing.Lat, lng: @listing.Long }, map: priceMap, icon: @icon})</text>
+            }
+
+    }
+
+</script>
+
+<script>
+    google.load("visualization", "1", {packages: ["corechart"]});
+    google.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Name');
+        data.addColumn('number', '# Listings');
+
+
+        data.addRows([
+          ['Studio', @Model.Listings.Where(x => x.Bedrooms == 0).Count()],
+          ['1 br', @Model.Listings.Where(x => x.Bedrooms == 1).Count()],
+          ['2 br', @Model.Listings.Where(x => x.Bedrooms == 2).Count()],
+          ['3+ br', @Model.Listings.Where(x => x.Bedrooms > 2).Count()]
+        ]);
+
+        var view = new google.visualization.DataView(data);
+        view.setColumns([0, 1]);
+
+        var chart = new google.visualization.ComboChart(document.getElementById('listingChart'));
+
+        chart.draw(view, {
+            height: 400,
+            width: 600,
+            series: {
+                0: {
+                    type: 'bars'
+                },
+                1: {
+                    type: 'line',
+                    color: 'grey',
+                    lineWidth: 0,
+                    pointSize: 0,
+                    visibleInLegend: false
+                }
+            },
+
+        });
+    }
+</script>
+
+
+
+@Styles.Render("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css")
+@Styles.Render("https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css")
+@Scripts.Render("https://maps.googleapis.com/maps/api/js?key=AIzaSyCRJz-LWCk_Cn3xI8oFiIAQ086o2dcM_P0&callback=initMap")
+@Scripts.Render("https://code.jquery.com/jquery-1.12.3.js")
+@Scripts.Render("https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js")
+@Scripts.Render("https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js")
+
+<script>
+    $(document).ready(function() {
+        $('#listingsTable').DataTable(
+            {
+                "order": [[ 3, "asc" ]]
+            } );
+    } );
+</script>

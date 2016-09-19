@@ -1,0 +1,75 @@
+﻿@model IEnumerable<monthlybnb.Models.City>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h2>MonthlyBnB</h2>
+
+
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="container-fluid">
+            AirBnB is a great service, but it's not optimized for people that want rentals for a month or more, and don't want to live in a shared room. I wrote this project to analyze the rentals in cities for me, and to become familiar with the ASP.NET framework. It's not really meant for public use, but if you've stumbled on it, I hope you find it useful.
+        </div>
+    </div>
+</div>
+
+
+
+<div class="panel panel-default">
+    <div class="panel-heading">Current Cities</div>
+    <div class="panel-body">
+        <div class="container-fluid">
+            <table id="listingsTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                <thead>
+                    <tr>
+                        <td>City</td>
+                        <td>Number of Listings</td>
+                        <td>Average Monthly Price</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (monthlybnb.Models.City city in Model.OrderBy(o => o.MonthlyAveragePrice))
+                    {
+                        <text>
+                            <tr>
+                                <td>@city.Name</td>
+                                <td>@city.Listings.Count</td>
+                                <td>@city.MonthlyAveragePrice</td>
+                                <td>@Html.ActionLink("Details", "../Cities/Details", new { id = city.Id })</td>
+                            </tr>
+                        </text>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("https://www.google.com/jsapi?ext.js")
+
+
+
+
+
+
+
+@Styles.Render("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css")
+@Styles.Render("https://cdn.datatables.net/1.10.12/css/dataTables.bootstrap.min.css")
+@Scripts.Render("https://maps.googleapis.com/maps/api/js?key=AIzaSyCRJz-LWCk_Cn3xI8oFiIAQ086o2dcM_P0&callback=initMap")
+@Scripts.Render("https://code.jquery.com/jquery-1.12.3.js")
+@Scripts.Render("https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js")
+@Scripts.Render("https://cdn.datatables.net/1.10.12/js/dataTables.bootstrap.min.js")
+
+<script>
+    $(document).ready(function() {
+        $('#listingsTable').DataTable(
+            {
+                "order": [[ 2, "asc" ]]
+            } );
+    } );
+</script>
