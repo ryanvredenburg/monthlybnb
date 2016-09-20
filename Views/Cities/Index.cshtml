@@ -25,6 +25,9 @@
             @Html.DisplayNameFor(model => model.Radius)
         </th>
         <th>
+            @Html.DisplayNameFor(model => model.Listings)
+        </th>
+        <th>
             @Html.DisplayNameFor(model => model.MonthlyAveragePrice)
         </th>
         <th>
@@ -46,6 +49,9 @@
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.Radius)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Listings.Count)
         </td>
         <td>
             @Html.DisplayFor(modelItem => item.MonthlyAveragePrice)

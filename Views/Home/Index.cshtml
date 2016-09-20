@@ -29,6 +29,7 @@
                         <td>City</td>
                         <td>Number of Listings</td>
                         <td>Average Monthly Price</td>
+                        <td>Lowest Quintile Average Monthly Price</td>
                         <td></td>
                     </tr>
                 </thead>
@@ -40,6 +41,7 @@
                                 <td>@city.Name</td>
                                 <td>@city.Listings.Count</td>
                                 <td>@city.MonthlyAveragePrice</td>
+                                <td>@city.quintileAveragePrices()[0]</td>
                                 <td>@Html.ActionLink("Details", "../Cities/Details", new { id = city.Id })</td>
                             </tr>
                         </text>
